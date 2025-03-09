@@ -18,35 +18,42 @@ async function main() {
 
     if (!fs.existsSync(BASE_IPA_NAME)) await dl(BASE_IPA_LINK, BASE_IPA_NAME);
 
-    // Read inputs from environment variables or fall back to prompts
-    var name = process.env.NAME ? process.env.NAME : prompt("Enter GDPS name: ");
+    var name = process.env.name ? process.env.name : prompt("Enter GDPS name: ");
     name = name.replaceAll(" ", "");
 
     var dir = `${name.toLowerCase()}-${crypto.randomBytes(8).toString('hex')}`;
 
-    // Bundle ID logic with validation
-    var bundle = process.env.BUNDLE_ID ? process.env.BUNDLE_ID : prompt("Enter bundle id (21 or 23 chars): ");
-    while (![21, 23].includes(bundle.length)) {
-        console.log("Length must be 21 or 23!\n");
-        bundle = prompt("Enter bundle id: ");
+    if (ICREATE_MODE) {
+        var bundle = process.env.bundle ? process.env.bundle : prompt("Enter bundle id (21 chars): ");
+
+        while (bundle.length != 21) {
+            console.log("Length isn't 21!!!\n");
+            var bundle = prompt("Bundle id: ");
+        }
+    } else {
+        var bundle = process.env.bundle ? process.env.bundle : prompt("Enter bundle id (23 chars): ");
+
+        while (bundle.length != 23) {
+            console.log("Length isn't 23!!!\n");
+            var bundle = prompt("Bundle id: ");
+        }
     }
 
-    // URL logic with validation
-    var base = process.env.URL ? process.env.URL : prompt("Enter URL (33 chars): ");
+    var base = process.env.url ? process.env.url : prompt("Enter URL (33 chars): ");
+
     while (base.length != 33) {
         console.log("Length isn't 33!!!\n");
-        base = prompt("Enter URL (33 chars): ");
+        var base = prompt("Enter URL (33 chars): ");
     }
-
     var b64 = Buffer.from(base).toString('base64');
     var url = `${base}/`;
-    var path = `${dir}/Payload/${name}.app`;
+    var path = `${dir}/Payload/${name}.app`
 
     console.log(`Decompressing ${BASE_IPA_NAME}\n`);
 
     await decompress(BASE_IPA_NAME, dir);
 
-    console.log("Editing IPA at " + dir + "\n");
+    console.log("Editing IPA at " + dir + "\n")
 
     await fs.promises.rename(`${dir}/Payload/GeometryJump.app`, path);
     await fs.promises.rename(`${path}/GeometryJump`, `${path}/${name}`);
@@ -67,13 +74,13 @@ async function main() {
         await fs.promises.writeFile(`${path}/hook.dylib`, icreate, 'binary');
     }
 
-    console.log("Compressing...\n");
+    console.log("Compressing...\n")
 
     await zipFolder(dir, `${name}.ipa`);
     
     await fs.promises.rm(dir, { recursive: true, force: true });
 
-    console.log("Done! Project by DimisAIO.be :)");
+    console.log("Done! Project by DimisAIO.be :)")
 }
 
-main();
+main(); // ok
