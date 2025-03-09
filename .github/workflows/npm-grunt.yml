@@ -1,51 +1,25 @@
-name: 2.2 IPA Maker
+name: Build iOS Project
 
 on:
-  workflow_dispatch:
-    inputs:
-      name:
-        description: "GDPS Name"
-        required: true
-      url:
-        description: "GDPS URL (33 CHARACTERS)"
-        required: true
-      bundle:
-        description: "BUDNLE ID (23 CHARACTERS)"
-        required: true
+  push:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [18.x]
-
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
+      - name: Set environment variables
+        run: |
+          echo "NAME=my-gdps-name" >> $GITHUB_ENV
+          echo "BUNDLE_ID=my.bundle.id" >> $GITHUB_ENV
+          echo "URL=https://example.com/myurl" >> $GITHUB_ENV
 
-    - name: Build
-      run: |
-        wget -L https://files.141412.xyz/r/base.ipa -O base.ipa
-        npm install
-        echo name=${{ inputs.name }} > .env
-        echo bundle=${{ inputs.bundle }} >> .env
-        echo url=${{ inputs.url }} >> .env
-        node index.js
-        mv ${{ inputs.name }}.ipa output.ipa
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v4.3.4
-      with:
-        # Artifact name
-        name: "IPA Output" # optional, default is artifact
-        # A file, directory or wildcard pattern that describes what to upload
-        path: "output.ipa"
-        # The desired behavior if no files are found using the provided path.
-        if-no-files-found: warn
-          
-    
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run build script
+        run: node index.js
